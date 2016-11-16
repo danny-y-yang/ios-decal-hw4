@@ -26,7 +26,7 @@ class PlayerViewController: UIViewController {
     var titleLabel: UILabel!
     var didPlay: [Track]!
 
-    var paused = true
+    var paused = false
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -118,6 +118,15 @@ class PlayerViewController: UIViewController {
         titleLabel.text = track.title
         artistLabel.text = track.artist
     }
+    
+    func updateCurrentPlayerItem() {
+        let path = Bundle.main.path(forResource: "Info", ofType: "plist")
+        let clientID = NSDictionary(contentsOfFile: path!)?.value(forKey: "client_id") as! String
+        let track = tracks[currentIndex]
+        let url = URL(string: "https://api.soundcloud.com/tracks/\(track.id as Int)/stream?client_id=\(clientID)")!
+        let song = AVPlayerItem(url: url)
+        player.replaceCurrentItem(with: song)
+    }
 
     /*
      *  This Method should play or pause the song, depending on the song's state
@@ -129,14 +138,26 @@ class PlayerViewController: UIViewController {
      *  property accordingly.
      */
     
+    
     func playOrPauseTrack(_ sender: UIButton) {
-        let path = Bundle.main.path(forResource: "Info", ofType: "plist")
-        let clientID = NSDictionary(contentsOfFile: path!)?.value(forKey: "client_id") as! String
-        let track = tracks[currentIndex]
-        let url = URL(string: "https://api.soundcloud.com/tracks/\(track.id as Int)/stream?client_id=\(clientID)")!
-        // FILL ME IN
-
+        if player.currentItem?.status == .readyToPlay {
+            if paused == false {
+                paused = true
+                sender.isSelected = false
+                player.pause()
+            } else {
+                paused = false
+                sender.isSelected = true
+                player.play()
+            }
+        } else {
+            updateCurrentPlayerItem()
+            sender.isSelected = true
+            player.play()
+        }
     }
+    
+
 
     /*
      * Called when the next button is tapped. It should check if there is a next
@@ -145,7 +166,11 @@ class PlayerViewController: UIViewController {
      * Remember to update the currentIndex
      */
     func nextTrackTapped(_ sender: UIButton) {
-        // FILL ME IN
+        if currentIndex < tracks.count - 1 {
+            currentIndex! += 1
+            updateCurrentPlayerItem()
+            loadTrackElements()
+        }
     }
 
     /*
@@ -159,7 +184,20 @@ class PlayerViewController: UIViewController {
      */
 
     func previousTrackTapped(_ sender: UIButton) {
-        // FILL ME IN
+        
+        var currentTime = player.currentTime()
+
+        // Rewind if more than three seconds into song, or start at beginning if less than 3 seconds
+        if CMTimeGetSeconds(currentTime) >= 3 || currentIndex == 0 {
+            let beginning = CMTimeMake(0, 1)
+            player.seek(to: beginning)
+        } else {
+            currentIndex! -= 1
+            if (currentIndex >= 0) {
+                updateCurrentPlayerItem()
+                loadTrackElements()
+            }
+        }
     }
 
 
