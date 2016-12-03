@@ -37,11 +37,12 @@ class PlayerViewController: UIViewController {
         scAPI.loadTracks(didLoadTracks)
         self.didPlay = []
         currentIndex = 0
-
         player = AVQueuePlayer()
 
         loadVisualElements()
         loadPlayerButtons()
+        
+        
     }
 
     func loadVisualElements() {
@@ -171,6 +172,10 @@ class PlayerViewController: UIViewController {
             updateCurrentPlayerItem()
             loadTrackElements()
         }
+        paused = false
+        sender.isSelected = true
+        player.play()
+        
     }
 
     /*
@@ -185,7 +190,7 @@ class PlayerViewController: UIViewController {
 
     func previousTrackTapped(_ sender: UIButton) {
         
-        var currentTime = player.currentTime()
+        let currentTime = player.currentTime()
 
         // Rewind if more than three seconds into song, or start at beginning if less than 3 seconds
         if CMTimeGetSeconds(currentTime) >= 3 || currentIndex == 0 {
@@ -198,6 +203,10 @@ class PlayerViewController: UIViewController {
                 loadTrackElements()
             }
         }
+        paused = false
+        sender.isSelected = true
+        player.play()
+        
     }
 
 
